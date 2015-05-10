@@ -8,11 +8,10 @@
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-
-  },
+  "devDependencies": {},
   "dependencies": {
     "jsonfile": "^2.0.0",
+    "mongoose": "^4.0.2",
     "musicmetadata": "^1.0.1",
     "path": "^0.11.14",
     "walkdir": "0.0.9"
