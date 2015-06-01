@@ -10,6 +10,7 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
+    "async": "^1.1.0",
     "jsonfile": "^2.0.0",
     "mongoose": "^4.0.2",
     "musicmetadata": "^1.0.1",
