@@ -1,9 +1,8 @@
-var fs = require('fs'),
-mm = require('musicmetadata'),
-walk = require('walkdir'),
-path = require('path'),
-mongoose = require('mongoose'),
-async = require('async');
+var fs = require('fs');
+var mm = require('musicmetadata');
+var walk = require('walkdir');
+var path = require('path');
+var mongoose = require('mongoose');
 var colors = require('colors');
 
 mongoose.connect('mongodb://localhost/Doppler');
@@ -20,8 +19,7 @@ var albumSchema = mongoose.Schema({
 
 var Album = mongoose.model('Album', albumSchema, 'Albums');
 var musicPath = process.argv[2] || '../music';
-var emitter = walk(musicPath),
-albumAr = [];
+var emitter = walk(musicPath);
 
 emitter.on('file',function(filename,stat){
 	if (path.extname(filename) == '.m4a' || path.extname(filename) == '.mp4' ) {
@@ -39,33 +37,18 @@ emitter.on('file',function(filename,stat){
 				artPath: metadata.cover
 			});
 
-			albumAr.push(newAlbum);	
+			var upsertData = newAlbum.toObject();
+			delete upsertData._id;
+
+			Album.update({album: metadata.album}, upsertData, {upsert: true}, function(err, rawResponse) {
+				if (err) console.log(err);
+				
+				if (rawResponse.upserted) {
+					console.log("Added Album: ".green + rawResponse.upserted[0]._id);
+				} else {
+					console.log("Skipping: ".red + metadata.album);
+				}
+			})
 		});
 	};
-});
-
-emitter.on('end', function(){
-	setTimeout(function(){
-		console.log(albumAr.length);
-		async.eachSeries(albumAr, function(element, callback){
-			
-			Album.findOne({album: element.album}, function(err, docs){
-
-				if (err){
-					console.log("Mongo error: " + err);
-					return false;
-				}
-				if (!docs){
-					console.log("Saved album: ".green + element.album);
-					element.save(function(err){
-						if (err) console.log(err);
-						callback();
-					});
-				} else {
-					console.log("Album Exists: ".red + element.album);
-					callback();
-				}
-			});
-		});
-	}, 2000)
 });
